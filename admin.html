@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin · A Tela Digital</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0a;color:#fff;font-family:Arial,sans-serif;min-height:100vh;padding:16px}
+h1{color:#fbbf24;font-size:22px;margin-bottom:4px}
+.sub{color:#888;font-size:13px;margin-bottom:16px}
+label{display:block;font-weight:bold;margin:12px 0 4px;font-size:13px;color:#fbbf24}
+input,select{width:100%;padding:12px;border-radius:8px;border:1px solid #444;background:#141414;color:#fff;font-size:15px}
+button{cursor:pointer}
+.btn{background:linear-gradient(90deg,#f97316,#fbbf24);color:#000;border:none;width:100%;padding:15px;border-radius:10px;font-size:16px;font-weight:900;margin-top:16px}
+.card{background:#141414;border:1px solid #333;border-radius:10px;padding:12px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.card b{font-size:14px}
+.card small{color:#888;display:block;margin-top:2px}
+.del{background:#dc2626;color:#fff;border:none;border-radius:8px;padding:10px 14px;font-weight:bold}
+#login{text-align:center;padding-top:60px}
+#login input{text-align:center;font-size:20px;letter-spacing:4px}
+#painel{display:none}
+h2{color:#f97316;margin:22px 0 6px;font-size:17px}
+textarea{width:100%;height:140px;background:#000;color:#4ade80;border:1px solid #333;border-radius:8px;padding:10px;font-size:11px;margin-top:8px}
+.copiar{background:#25d366;color:#fff;border:none;border-radius:10px;padding:13px;font-weight:900;width:100%;margin-top:8px;font-size:15px}
+.nota{font-size:12px;color:#888;margin-top:10px;line-height:1.5}
+.cores{display:flex;gap:8px;margin-top:6px}
+.cor{width:44px;height:44px;border-radius:8px;cursor:pointer;border:3px solid transparent}
+.cor.on{border-color:#fff}
+</style>
+</head>
+<body>
+
+<div id="login">
+<h1>🔐 A TELA DIGITAL</h1>
+<p class="sub">Área restrita do administrador</p>
+<input type="password" id="senha" placeholder="••••••" maxlength="20">
+<button class="btn" onclick="entrar()">ENTRAR</button>
+</div>
+
+<div id="painel">
+<h1>📢 Painel da Tela</h1>
+<p class="sub" id="total"></p>
+
+<h2>➕ Nova oferta</h2>
+<label>Categoria</label><select id="fCat"></select>
+<label>Título da oferta</label><input id="fTit" placeholder="Ex: ARROZ 5KG + FEIJÃO 1KG" maxlength="60">
+<label>Preço / chamada</label><input id="fPreco" placeholder="Ex: R$ 19,90 ou 40% OFF" maxlength="25">
+<label>Loja</label><input id="fLoja" placeholder="Ex: 🏪 Atacadão Curitiba" maxlength="50">
+<label>Cor do banner</label>
+<div class="cores" id="cores"></div>
+<button class="btn" onclick="adicionar()">ADICIONAR À TELA</button>
+
+<h2>📋 Ofertas na tela</h2>
+<div id="lista"></div>
+
+<h2>⚙️ Publicar no site</h2>
+<p class="nota">1. Toque em <b>GERAR CÓDIGO</b><br>2. Copie tudo<br>3. No GitHub, abra o <b>index.html</b>, apague a lista antiga <b>var ADS=[...]</b> e cole a nova no lugar.</p>
+<button class="copiar" onclick="gerar()">📋 GERAR CÓDIGO</button>
+<textarea id="codigo" readonly placeholder="O código gerado aparece aqui..."></textarea>
+<button class="copiar" onclick="copiar()">⧉ COPIAR CÓDIGO</button>
+</div>
+
+<script>
+var SENHA="tela2026";
+var CATS=["Ofertas do Dia","Atacadão","Celulares","Informática","Eletrodomésticos","Eletrônicos","Games","Moda","Calçados","Beleza","Saúde","Farmácia","Esporte","Brinquedos","Casa e Decoração","Automotivo","Pet Shop","Supermercado","Ferramentas","Serviços"];
+var CORES=[
+"linear-gradient(135deg,#c2410c,#f97316)",
+"linear-gradient(135deg,#92400e,#fbbf24)",
+"linear-gradient(135deg,#166534,#4ade80)",
+"linear-gradient(135deg,#7c2d12,#fb923c)",
+"linear-gradient(135deg,#9a3412,#fde68a)",
+"linear-gradient(135deg,#78350f,#f59e0b)",
+"linear-gradient(135deg,#431407,#ea580c)",
+"linear-gradient(135deg,#1e3a8a,#38bdf8)"];
+var corSel=0;
+var ADS=JSON.parse(localStorage.getItem("telads")||"[]");
+function entrar(){if(document.getElementById('senha').value===SENHA){document.getElementById('login').style.display='none';document.getElementById('painel').style.display='block';init();}else alert('❌ Senha incorreta');}
+function init(){
+ document.getElementById('fCat').innerHTML=CATS.map(function(c){return '<option>'+c+'</option>';}).join('');
+ document.getElementById('cores').innerHTML=CORES.map(function(c,i){return '<div class="cor'+(i===0?' on':'')+'" style="background:'+c+'" onclick="corSel='+i+';selCor()"></div>';}).join('');
+ render();
+}
+function selCor(){var d=document.querySelectorAll('.cor');d.forEach(function(x,i){x.classList.toggle('on',i===corSel);});}
+function salvar(){localStorage.setItem("telads",JSON.stringify(ADS));}
+function adicionar(){
+ var t=document.getElementById('fTit').value.trim();
+ var p=document.getElementById('fPreco').value.trim();
+ if(!t||!p){alert('Preencha título e preço.');return;}
+ ADS.push({cat:document.getElementById('fCat').value,tit:t.toUpperCase(),preco:p,
+ loja:document.getElementById('fLoja').value.trim()||'🏪 Oferta local',cor:CORES[corSel]});
+ salvar();document.getElementById('fTit').value='';document.getElementById('fPreco').value='';document.getElementById('fLoja').value='';
+ render();alert('✅ Oferta adicionada!');
+}
+function excluir(i){if(confirm('Excluir esta oferta?')){ADS.splice(i,1);salvar();render();}}
+function render(){
+ document.getElementById('total').textContent=ADS.length+' oferta(s) girando na tela';
+ document.getElementById('lista').innerHTML=ADS.length?ADS.map(function(a,i){
+ return '<div class="card"><div><b>'+a.tit+'</b><small>'+a.cat+' · '+a.preco+'</small></div><button class="del" onclick="excluir('+i+')">✕</button></div>';}).join('')
+ :'<p class="nota">Nenhuma oferta ainda. Adicione a primeira acima.</p>';
+}
+function gerar(){
+ var s='var ADS=['+ADS.map(function(a){
+ return '{cat:"'+a.cat+'",tit:"'+a.tit.replace(/"/g,'')+'",preco:"'+a.preco.replace(/"/g,'')+'",loja:"'+a.loja.replace(/"/g,'')+'",cor:"'+a.cor+'"}';}).join(',')+'];';
+ document.getElementById('codigo').value=s;
+}
+function copiar(){var t=document.getElementById('codigo');if(!t.value){alert('Toque em GERAR CÓDIGO primeiro.');return;}t.select();document.execCommand('copy');alert('✅ Código copiado! Agora cole no index.html do GitHub.');}
+</script>
+</body>
+  </html>
