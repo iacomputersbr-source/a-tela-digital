@@ -3,46 +3,51 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Painel - A Tela Digital ⚙️</title>
+<title>Painel - A Tela Digital</title>
 <style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:Arial,Helvetica,sans-serif;background:#111;color:#fff;min-height:100vh}
-  header{background:#f97316;padding:18px;text-align:center}
-  header h1{font-size:22px;color:#000}
-  header p{color:#000;font-size:13px;margin-top:4px}
-  main{max-width:640px;margin:0 auto;padding:18px}
- .card{background:#1c1c1c;border:1px solid #333;border-radius:12px;padding:16px;margin-bottom:16px}
- .card h2{color:#f97316;font-size:17px;margin-bottom:10px}
- .card p,.card li{font-size:14px;line-height:1.7;color:#ddd}
- .card ol{padding-left:20px}
-  input,textarea,button{width:100%;border-radius:8px;font-size:15px;padding:12px;margin-top:8px;border:1px solid #444;background:#222;color:#fff}
-  textarea{min-height:110px;font-family:monospace;resize:vertical}
-  button{background:#f97316;color:#000;font-weight:bold;border:none;cursor:pointer;margin-top:10px}
-  button.sec{background:#333;color:#fff}
-  #login{max-width:340px;margin:60px auto;padding:24px;text-align:center}
-  #login input{text-align:center}
- .ok{color:#4ade80}.warn{color:#fbbf24}
- .lista{list-style:none;padding:0}
- .lista li{background:#222;border:1px solid #333;border-radius:8px;padding:10px;margin-top:8px;font-size:13px;word-break:break-all}
- .hidden{display:none}
-  code{background:#000;color:#f97316;padding:2px 6px;border-radius:4px;font-size:13px}
-  @media (max-width:520px){
-    header{padding:14px}
-    main{padding:12px}
-    input,textarea,button{font-size:16px}
-  }
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Arial,Helvetica,sans-serif;background:#111;color:#fff;min-height:100vh}
+header{background:#f97316;padding:16px;text-align:center}
+header h1{font-size:20px;color:#000}
+header p{color:#000;font-size:12px;margin-top:4px}
+main{max-width:680px;margin:0 auto;padding:16px}
+.card{background:#1c1c1c;border:1px solid #333;border-radius:12px;padding:16px;margin-bottom:16px}
+.card h2{color:#f97316;font-size:17px;margin-bottom:10px}
+.card p,.card li{font-size:14px;line-height:1.7;color:#ddd}
+input,textarea,button{width:100%;border-radius:8px;font-size:15px;padding:12px;margin-top:8px;border:1px solid #444;background:#222;color:#fff}
+button{background:#f97316;color:#000;font-weight:bold;border:none;cursor:pointer;margin-top:10px}
+button.sec{background:#333;color:#fff}
+button.danger{background:#7f1d1d;color:#fff}
+button:disabled{opacity:.5}
+#login{max-width:340px;margin:60px auto;padding:24px;text-align:center}
+#login input{text-align:center}
+.hidden{display:none}
+.ok{color:#4ade80}.warn{color:#fbbf24}
+.loja{background:#222;border:1px solid #444;border-radius:10px;padding:12px;margin-top:12px}
+.loja.nom{font-size:16px;color:#f97316;font-weight:bold}
+.loja.fon{font-size:13px;color:#aaa}
+.fila{display:flex;gap:8px}
+.fila button{flex:1}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.an{position:relative;background:#000;border-radius:8px;overflow:hidden}
+.an img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.an.t{font-size:11px;padding:6px;color:#ddd;min-height:28px}
+.an.x{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:14px;padding:0;margin:0;cursor:pointer}
+code{background:#000;color:#f97316;padding:2px 6px;border-radius:4px;font-size:12px;word-break:break-all}
+.cargando{text-align:center;color:#888;padding:20px}
+@media (max-width:520px){main{padding:12px}input,textarea,button{font-size:16px}.grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
 <header>
-  <h1>⚙️ PAINEL — A TELA DIGITAL</h1>
-  <p>IA COMPUTERS · Curitiba</p>
+  <h1>PAINEL &mdash; A TELA DIGITAL</h1>
+  <p>IA COMPUTERS &middot; Curitiba &middot; todo autom&aacute;tico</p>
 </header>
 
 <div id="login">
   <div class="card">
-    <h2>🔒 Acesso restrito</h2>
-    <input type="password" id="senha" placeholder="Digite a senha" inputmode="numeric">
+    <h2>Acceso restringido</h2>
+    <input type="password" id="senha" placeholder="Clave" inputmode="numeric">
     <button onclick="entrar()">Entrar</button>
     <p id="erro" class="warn" style="margin-top:10px"></p>
   </div>
@@ -50,144 +55,188 @@
 
 <main id="painel" class="hidden">
   <div class="card">
-    <h2>🖼️ Imagens ativas agora</h2>
-    <ul id="atuais" class="lista"><li>Carregando...</li></ul>
-    <p style="margin-top:8px">⏱️ Intervalo: <b id="intAtual">–</b> segundos por imagem</p>
+    <h2>&#9201; Intervalo de la tela</h2>
+    <p>Segundos que dura cada imagen en el TV:</p>
+    <div class="fila">
+      <input type="number" id="intervalo" value="8" min="3" max="60" style="margin-top:8px">
+      <button onclick="salvarIntervalo()" style="margin-top:8px">&#128190; Guardar</button>
+    </div>
   </div>
 
   <div class="card">
-    <h2>➕ Adicionar / trocar imagens</h2>
-    <ol>
-      <li>No GitHub, entre na pasta <code>img</code> do repositório e toque <b>Add file → Upload files</b>. Envie suas fotos e toque <b>Commit changes</b>.</li>
-      <li>Anote o <b>nome exato</b> de cada arquivo (ex: <code>oferta1.jpg</code>).</li>
-      <li>Escreva abaixo um nome por linha e gere a configuração:</li>
-    </ol>
-    <textarea id="nomes" placeholder="propaganda.png&#10;oferta1.jpg&#10;oferta2.jpg"></textarea>
-    <input type="number" id="intervalo" value="8" min="3" max="60" placeholder="Segundos por imagem">
-    <button onclick="gerar()">⚙️ Gerar configuração</button>
-    <textarea id="saida" class="hidden" readonly></textarea>
-    <button id="btnCopiar" class="sec hidden" onclick="copiar()">📋 Copiar texto</button>
-    <ol start="4" style="margin-top:10px">
-      <li>Copie o texto gerado, abra o arquivo <code>config.js</code> no GitHub (ícone ✏️ lápis), <b>apague tudo</b>, cole e toque <b>Commit changes</b>.</li>
-      <li>Em <b>2 a 5 minutos</b> a tela atualiza sozinha. ✅</li>
-    </ol>
+    <h2>&#10133; Nueva tienda</h2>
+    <input id="nomeLoja" placeholder="Nombre de la tienda (ej: Padaria P&atilde;o Quente)">
+    <input id="foneLoja" placeholder="WhatsApp (ej: 41997294355)" inputmode="tel">
+    <button onclick="criarLoja()">&#10133; Crear tienda</button>
   </div>
 
   <div class="card">
-    <h2>🏪 Ofertas por tienda</h2>
-    <ol>
-      <li>Sube las imágenes a la carpeta <code>img</code> en GitHub (<b>Add file → Upload files</b>).</li>
-      <li>Escribe <b>una línea por anuncio</b> así:<br><code>Tienda | Teléfono | archivo | Título</code><br>El teléfono puede quedar vacío.</li>
-    </ol>
-    <textarea id="lojas" placeholder="Padaria Pão Quente | 41997294355 | padaria1.jpg | Pão fresquinho R$ 5&#10;Padaria Pão Quente | | padaria2.jpg | Bolo de cenoura&#10;Barbearia Estilo | 41988887777 | corte.jpg | Corte + barba R$ 60"></textarea>
-    <input type="number" id="intervalo2" value="8" min="3" max="60" placeholder="Segundos por imagen">
-    <button onclick="gerarLojas()">⚙️ Generar configuración de tiendas</button>
-    <textarea id="saida2" class="hidden" readonly></textarea>
-    <button id="btnCopiar2" class="sec hidden" onclick="copiar2()">📋 Copiar texto</button>
-    <ol start="3" style="margin-top:10px">
-      <li>Copia el texto, abre <code>config.js</code> en GitHub (✏️), <b>borra todo</b>, pega y toca <b>Commit changes</b>.</li>
-      <li>En <b>2 a 5 minutos</b> la tela y las ofertas se actualizan. ✅</li>
-    </ol>
-    <h2 style="margin-top:16px">🔗 Links por tienda</h2>
-    <ul id="linksLojas" class="lista"><li>Cargando...</li></ul>
+    <h2>&#127978; Tiendas y anuncios</h2>
+    <div id="lojas"><p class="cargando">Cargando...</p></div>
   </div>
 
   <div class="card">
-    <h2>📺 Links</h2>
-    <p><b class="ok">Tela (para o TV):</b><br><span id="linkTela" style="word-break:break-all"></span></p>
-    <p style="margin-top:8px">Dica: na tela do TV, pressione <b>F5</b> para recarregar após mudanças.</p>
+    <h2>&#128250; Links</h2>
+    <p><b class="ok">Tela (para el TV):</b><br><code id="linkTela"></code></p>
+    <p style="margin-top:8px"><b class="ok">Ofertas (directorio):</b><br><code id="linkOfertas"></code></p>
   </div>
 </main>
 
-<script src="config.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
+firebase.initializeApp({
+  apiKey: "AIzaSyBxz-Y-QtDuZEwFDv9dyQGziQDqvzf_uaE",
+  authDomain: "a-tela-digital.firebaseapp.com",
+  projectId: "a-tela-digital",
+  storageBucket: "a-tela-digital.firebasestorage.app",
+  messagingSenderId: "419054924443",
+  appId: "1:419054924443:web:510a842f13a3ec9d174c3e",
+  measurementId: "G-W5YVP430ES"
+});
+var db = firebase.firestore();
+
 function entrar(){
-  var s=document.getElementById('senha').value;
-  if(s==='2024'){
+  var s = document.getElementById('senha').value;
+  if(s === '2024'){
     document.getElementById('login').classList.add('hidden');
     document.getElementById('painel').classList.remove('hidden');
-    carregar();
-  }else{
-    document.getElementById('erro').textContent='❌ Senha incorreta';
+    var base = location.href.replace(/\/painel\.html.*$/, '/');
+    document.getElementById('linkTela').textContent = base + 'tela.html';
+    document.getElementById('linkOfertas').textContent = base + 'oferta.html';
+    carregarIntervalo();
+    carregarLojas();
+  } else {
+    document.getElementById('erro').textContent = 'Clave incorrecta';
   }
 }
-document.getElementById('senha').addEventListener('keydown',function(e){if(e.key==='Enter')entrar();});
-function carregar(){
-  var cfg=(typeof CONFIG!=='undefined')?CONFIG:{imagens:[],intervalo:8};
-  var ul=document.getElementById('atuais');ul.innerHTML='';
-  var imgs=(cfg.imagens||[]).filter(function(s){return s&&s.trim();});
-  if(!imgs.length){ul.innerHTML='<li class="warn">Nenhuma imagem ativa no momento.</li>';}
-  imgs.forEach(function(s){var li=document.createElement('li');li.textContent='🖼️ '+s;ul.appendChild(li);});
-  document.getElementById('intAtual').textContent=cfg.intervalo||8;
-  var base=location.href.replace(/\/painel\.html.*$/,'/');
-  document.getElementById('linkTela').textContent=base+'tela.html';
-  listarLojas(base);
+document.getElementById('senha').addEventListener('keydown', function(e){ if(e.key==='Enter') entrar(); });
+
+function esc(s){ return String(s||'').replace(/[&<>"]/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]); }); }
+
+function carregarIntervalo(){
+  db.collection('config').doc('tela').get().then(function(d){
+    if(d.exists && d.data().intervalo) document.getElementById('intervalo').value = d.data().intervalo;
+  }).catch(function(){});
 }
-function gerar(){
-  var linhas=document.getElementById('nomes').value.split('\n')
-   .map(function(s){return s.trim();}).filter(Boolean)
-   .map(function(s){return ' "img/'+s.replace(/^img\//,'')+'",';});
-  var t=document.getElementById('intervalo').value||8;
-  var txt='const CONFIG = {\n intervalo: '+t+',\n imagens: [\n'+linhas.join('\n')+'\n ]\n};';
-  var saida=document.getElementById('saida');
-  saida.value=txt;saida.classList.remove('hidden');
-  document.getElementById('btnCopiar').classList.remove('hidden');
-  saida.scrollIntoView({behavior:'smooth'});
+function salvarIntervalo(){
+  var v = parseInt(document.getElementById('intervalo').value, 10) || 8;
+  db.collection('config').doc('tela').set({intervalo: v}).then(function(){
+    alert('Intervalo guardado: ' + v + ' segundos');
+  }).catch(function(e){ alert('Error: ' + e.message); });
 }
-function copiar(){
-  var saida=document.getElementById('saida');
-  saida.select();document.execCommand('copy');
-  if(navigator.clipboard){navigator.clipboard.writeText(saida.value);}
-  alert('✅ Texto copiado! Agora cole no arquivo config.js do GitHub.');
+
+function criarLoja(){
+  var nome = document.getElementById('nomeLoja').value.trim();
+  var fone = document.getElementById('foneLoja').value.replace(/\D/g, '');
+  if(!nome){ alert('Escribe el nombre de la tienda'); return; }
+  db.collection('clientes').add({nome: nome, fone: fone, criadoEm: new Date()}).then(function(){
+    document.getElementById('nomeLoja').value = '';
+    document.getElementById('foneLoja').value = '';
+    carregarLojas();
+  }).catch(function(e){ alert('Error: ' + e.message); });
 }
-function gerarLojas(){
-  var linhas=document.getElementById('lojas').value.split('\n');
-  var clientes=[], idx={};
-  linhas.forEach(function(ln){
-    var p=ln.split('|').map(function(s){return s.trim();});
-    if(p.length<3) return;
-    var nome=p[0], fone=(p[1]||'').replace(/\D/g,''), arq=p[2].replace(/^img\//,''), tit=p[3]||arq;
-    if(!nome||!arq) return;
-    if(!(nome in idx)){ idx[nome]=clientes.length; clientes.push({nome:nome,fone:fone,anuncios:[]}); }
-    else if(fone &&!clientes[idx[nome]].fone){ clientes[idx[nome]].fone=fone; }
-    clientes[idx[nome]].anuncios.push({img:'img/'+arq, titulo:tit});
+
+function redimensionar(file){
+  return new Promise(function(res, rej){
+    var img = new Image();
+    var url = URL.createObjectURL(file);
+    img.onload = function(){
+      var max = 1280, w = img.width, h = img.height;
+      if(w > max || h > max){ var r = Math.min(max/w, max/h); w = Math.round(w*r); h = Math.round(h*r); }
+      var c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      res(c.toDataURL('image/jpeg', 0.82));
+    };
+    img.onerror = rej;
+    img.src = url;
   });
-  if(!clientes.length){ alert('⚠️ No se reconoció ninguna línea. Usa el formato: Tienda | Teléfono | archivo | Título'); return; }
-  var t=document.getElementById('intervalo2').value||8;
-  var txt='const CONFIG = {\n intervalo: '+t+',\n clientes: '+JSON.stringify(clientes)+'\n};';
-  var s=document.getElementById('saida2');
-  s.value=txt; s.classList.remove('hidden');
-  document.getElementById('btnCopiar2').classList.remove('hidden');
-  s.scrollIntoView({behavior:'smooth'});
 }
-function copiar2(){
-  var s=document.getElementById('saida2');
-  s.select(); document.execCommand('copy');
-  if(navigator.clipboard){ navigator.clipboard.writeText(s.value); }
-  alert('✅ Texto copiado! Pégalo en el archivo config.js de GitHub (borrando todo lo anterior).');
+
+function addAnuncio(id){
+  var fi = document.getElementById('file-' + id);
+  var ti = document.getElementById('tit-' + id);
+  if(!fi.files.length){ alert('Elige una imagen de tu galería'); return; }
+  var titulo = ti.value.trim() || 'Oferta';
+  var btn = document.getElementById('btn-' + id);
+  btn.disabled = true; btn.textContent = 'Subiendo...';
+  redimensionar(fi.files[0]).then(function(dataUrl){
+    return db.collection('clientes').doc(id).collection('anuncios').add({img: dataUrl, titulo: titulo, criadoEm: new Date()});
+  }).then(function(){
+    fi.value = ''; ti.value = '';
+    btn.disabled = false; btn.textContent = 'Agregar anuncio';
+    carregarLojas();
+  }).catch(function(e){
+    btn.disabled = false; btn.textContent = 'Agregar anuncio';
+    alert('Error: ' + e.message);
+  });
 }
-function listarLojas(base){
-  var cfg=(typeof CONFIG!=='undefined')?CONFIG:{};
-  var clientes=cfg.clientes||[];
-  var ul=document.getElementById('linksLojas'); ul.innerHTML='';
-  if(!clientes.length){ ul.innerHTML='<li class="warn">Aún no hay tiendas en el config.js. Genera la configuración arriba. ☝️</li>'; return; }
-  clientes.forEach(function(cl,i){
-    var url=base+'oferta.html?loja='+i;
-    var li=document.createElement('li');
-    var b=document.createElement('b'); b.style.color='#f97316';
-    b.textContent='🏪 '+cl.nome+' ('+((cl.anuncios||[]).length)+' anuncios)';
-    li.appendChild(b); li.appendChild(document.createElement('br'));
-    var code=document.createElement('code'); code.textContent=url; li.appendChild(code);
-    var btn=document.createElement('button'); btn.className='sec'; btn.style.marginTop='8px';
-    btn.textContent='📋 Copiar link de la tienda';
-    btn.onclick=(function(u,n){ return function(){
-      if(navigator.clipboard){ navigator.clipboard.writeText(u).then(function(){ alert('✅ Link copiado: '+n); }); }
-      else { prompt('Copia el link:', u); }
-    };})(url, cl.nome);
-    li.appendChild(btn);
-    ul.appendChild(li);
+
+function delAnuncio(cid, aid){
+  if(!confirm('Borrar este anuncio?')) return;
+  db.collection('clientes').doc(cid).collection('anuncios').doc(aid).delete().then(carregarLojas);
+}
+
+function delLoja(id, nome){
+  if(!confirm('Borrar la tienda "' + nome + '" y todos sus anuncios?')) return;
+  db.collection('clientes').doc(id).collection('anuncios').get().then(function(s){
+    var ps = [];
+    s.forEach(function(d){ ps.push(d.ref.delete()); });
+    return Promise.all(ps);
+  }).then(function(){
+    return db.collection('clientes').doc(id).delete();
+  }).then(carregarLojas);
+}
+
+function copiarLink(id){
+  var base = location.href.replace(/\/painel\.html.*$/, '/');
+  var url = base + 'oferta.html?loja=' + id;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(url).then(function(){ alert('Link copiado. Envíeselo al dueño por WhatsApp'); });
+  } else { prompt('Copia el link:', url); }
+}
+
+function carregarLojas(){
+  var box = document.getElementById('lojas');
+  db.collection('clientes').orderBy('criadoEm', 'desc').get().then(function(snap){
+    if(snap.empty){ box.innerHTML = '<p class="cargando">Aún no hay tiendas. Crea la primera arriba.</p>'; return; }
+    var html = '';
+    var ids = [];
+    snap.forEach(function(doc){
+      var c = doc.data();
+      ids.push(doc.id);
+      html += '<div class="loja" id="loja-' + doc.id + '">'
+        + '<div class="nom">🏪 ' + esc(c.nome) + '</div>'
+        + (c.fone? '<div class="fon">· ' + esc(c.fone) + '</div>' : '')
+        + '<div class="fila"><button class="sec" onclick="copiarLink(\'' + doc.id + '\')">🔗 Copiar link</button>'
+        + '<button class="danger" onclick="delLoja(\'' + doc.id + '\',\'' + esc(c.nome).replace(/\'/g, "\\'") + '\')" style="flex:0 0 52px">🗑️</button></div>'
+        + '<input type="file" accept="image/*" id="file-' + doc.id + '">'
+        + '<input placeholder="Título del anuncio (ej: Pão R$ 5)" id="tit-' + doc.id + '">'
+        + '<button id="btn-' + doc.id + '" onclick="addAnuncio(\'' + doc.id + '\')">🖼️ Agregar anuncio</button>'
+        + '<div class="grid" id="ads-' + doc.id + '"><p class="cargando">...</p></div>'
+        + '</div>';
+    });
+    box.innerHTML = html;
+    ids.forEach(function(id){
+      db.collection('clientes').doc(id).collection('anuncios').orderBy('criadoEm', 'desc').get().then(function(a){
+        var g = document.getElementById('ads-' + id);
+        if(!g) return;
+        if(a.empty){ g.innerHTML = '<p class="cargando">Sin anuncios</p>'; return; }
+        var h = '';
+        a.forEach(function(d){
+          var an = d.data();
+          h += '<div class="an"><img src="' + an.img + '"><div class="t">' + esc(an.titulo || '') + '</div>'
+            + '<button class="x" onclick="delAnuncio(\'' + id + '\',\'' + d.id + '\')">×</button></div>';
+        });
+        g.innerHTML = h;
+      });
+    });
+  }).catch(function(e){
+    box.innerHTML = '<p class="warn">Error: ' + esc(e.message) + '</p>';
   });
 }
 </script>
 </body>
-</html>
+   </html>
