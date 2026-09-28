@@ -11,20 +11,33 @@ header{background:#f97316;padding:12px 16px;display:flex;justify-content:space-b
 header.logo{font-weight:bold;color:#000;font-size:16px}
 .lang button{background:#000;color:#fff;border:none;border-radius:14px;padding:6px 11px;margin-left:6px;font-size:13px;opacity:.6}
 .lang button.on{opacity:1;outline:2px solid #fff}
-main{flex:1;max-width:560px;width:100%;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:14px}
-.negocio{background:#1c1c1c;border:1px solid #333;border-radius:14px;padding:18px;text-align:center}
-.negocio h1{font-size:22px;color:#f97316;margin-bottom:4px}
+main{flex:1;max-width:900px;width:100%;margin:0 auto;padding:16px}
+#estado{text-align:center;padding:60px 20px;color:#888;font-size:17px;line-height:2}
+.negocio{background:#1c1c1c;border:1px solid #333;border-radius:14px;padding:18px;text-align:center;margin-bottom:14px}
+.negocio h1{font-size:22px;color:#f97316;margin-bottom:6px}
 .negocio p{color:#aaa;font-size:13px}
-.anuncio{background:#000;border:1px solid #333;border-radius:14px;overflow:hidden}
-.anuncio img{width:100%;display:block}
-.info{background:#1c1c1c;border:1px solid #333;border-radius:14px;padding:14px 18px;font-size:14px;color:#ddd;line-height:2}
-.info b{color:#f97316}
-.btn{display:block;text-align:center;padding:15px;border-radius:12px;font-size:17px;font-weight:bold;text-decoration:none;margin-top:4px}
+.btn{display:block;text-align:center;padding:15px;border-radius:12px;font-size:17px;font-weight:bold;text-decoration:none;margin-top:10px}
 .btn.wa{background:#25d366;color:#fff}
 .btn.share{background:#f97316;color:#000;border:none;cursor:pointer;width:100%}
-#estado{text-align:center;padding:60px 20px;color:#888;font-size:17px;line-height:2}
+.btn.voltar{background:#333;color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.tarjeta{background:#1c1c1c;border:1px solid #333;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.tarjeta img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.tarjeta.tt{padding:10px;font-size:13px;color:#ddd;flex:1}
+.tarjeta.acc{display:flex;gap:6px;padding:0 10px 10px}
+.tarjeta.acc a,.tarjeta.acc button{flex:1;text-align:center;padding:9px 4px;border-radius:8px;font-size:13px;font-weight:bold;text-decoration:none;cursor:pointer;border:none}
+.tarjeta.acc.ver{background:#f97316;color:#000}
+.tarjeta.acc.cp{background:#333;color:#fff}
+.tienda{display:flex;justify-content:space-between;align-items:center;background:#1c1c1c;border:1px solid #333;border-radius:12px;padding:14px;margin-bottom:10px;text-decoration:none;color:#fff}
+.tienda b{color:#f97316;font-size:16px}
+.tienda span{color:#888;font-size:13px}
+.anuncio{background:#000;border:1px solid #333;border-radius:14px;overflow:hidden;max-width:560px;margin:0 auto}
+.anuncio img{width:100%;display:block}
+.anuncio.tt{padding:14px;font-size:16px;text-align:center;line-height:1.6}
+.caja{max-width:560px;margin:0 auto}
 footer{text-align:center;padding:18px;color:#666;font-size:12px}
 footer b{color:#f97316}
+@media (max-width:380px){.grid{grid-template-columns:repeat(2,1fr)}.btn{font-size:15px}}
 </style>
 </head>
 <body>
@@ -34,90 +47,98 @@ footer b{color:#f97316}
 </header>
 <main id="conteudo"><div id="estado">Carregando...</div></main>
 <footer><b>A TELA DIGITAL</b> - IA COMPUTERS - Curitiba<br><span data-pt="Sua propaganda na tela da sua loja" data-es="Tu publicidad en la pantalla de tu tienda">Sua propaganda na tela da sua loja</span></footer>
-
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config.js"></script>
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyBxz-Y-QtDuZEwFDv9dyQGziQDqvzf_uaE",
-  authDomain: "a-tela-digital.firebaseapp.com",
-  projectId: "a-tela-digital",
-  storageBucket: "a-tela-digital.firebasestorage.app",
-  messagingSenderId: "419054924443",
-  appId: "1:419054924443:web:510a842f13a3ec9d174c3e",
-  measurementId: "G-W5YVP430ES"
+var T = {
+  pt:{sinTiendas:'Ainda não há lojas configuradas.<br>Fale com a gente!', ofertas:'ofertas', verOfertas:'Ver ofertas',
+      compartir:'Compartir', ver:'Ver', llamar:'Chamar no WhatsApp', todas:'← Todas las ofertas',
+      copiado:'Link copiado!', elige:'Escolha a loja'},
+  es:{sinTiendas:'Aún no hay tiendas configuradas.<br>¡Habla con nosotros!', ofertas:'ofertas', verOfertas:'Ver ofertas',
+      compartir:'Compartir', ver:'Ver', llamar:'Escribir por WhatsApp', todas:'← Todas las ofertas',
+      copiado:'¡Link copiado!', elige:'Elige tu tienda'}
 };
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-const T = {
-  pt: {carregando:'Carregando...', invalido:'Link invalido.', finalizada:'Esta oferta ja terminou.<br>Fale com a loja para novidades!',
-    valida:'Oferta valida ate', compartilhar:'Compartilhar oferta', chamar:'Chamar no WhatsApp', erro:'Erro ao carregar.'},
-  es: {carregando:'Cargando...', invalido:'Link invalido.', finalizada:'Esta oferta ya termino.<br>Habla con la tienda para novedades!',
-    valida:'Oferta valida hasta', compartilhar:'Compartir oferta', chamar:'Escribir por WhatsApp', erro:'Error al cargar.'}
-};
-let lang = 'pt';
-let dados = null;
-
+var lang = 'pt';
 function setLang(l){
   lang = l;
   document.getElementById('bPT').classList.toggle('on', l==='pt');
   document.getElementById('bES').classList.toggle('on', l==='es');
   document.querySelectorAll('[data-pt]').forEach(function(el){ el.textContent = (l==='pt')? el.dataset.pt : el.dataset.es; });
-  if(dados) render(dados); else init();
+  init();
 }
-
 function esc(s){ return String(s||'').replace(/[&<>"]/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]); }); }
-
-function foneParaWa(f){
-  const d = String(f||'').replace(/\D/g,'');
+function foneWa(f){
+  var d = String(f||'').replace(/\D/g,'');
   if(d.length === 10 || d.length === 11) return '55' + d;
   return d;
 }
-
-function dataFmt(ts){
-  try{ return ts.toDate().toLocaleDateString(lang==='pt'?'pt-BR':'es', {day:'2-digit',month:'2-digit',year:'numeric'}); }
-  catch(e){ return ''; }
+function getCfg(){ return (typeof CONFIG!== 'undefined')? CONFIG : {clientes:[]}; }
+function baseUrl(){ return location.href.split('?')[0]; }
+function linkLoja(i){ return baseUrl() + '?loja=' + i; }
+function linkAnuncio(i,j){ return baseUrl() + '?loja=' + i + '&ad=' + j; }
+async function compartir(titulo, url){
+  if(navigator.share){ try{ await navigator.share({title:titulo, text:titulo, url:url}); }catch(e){} }
+  else { window.open('https://wa.me/?text=' + encodeURIComponent(titulo + ' ' + url), '_blank'); }
 }
-
-function render(c){
-  const wa = foneParaWa(c.telefone);
-  const img = c.imagemData || c.imagemURL || '';
-  let html = '<div class="negocio"><h1>' + esc(c.nome) + '</h1><p>' + esc(c.planoRotulo||'') + '</p></div>';
-  if(img) html += '<div class="anuncio"><img src="' + img + '" alt="oferta"></div>';
-  html += '<div class="info">' + T[lang].valida + ': <b>' + dataFmt(c.expiraEm) + '</b></div>';
-  if(wa) html += '<a class="btn wa" target="_blank" href="https://wa.me/' + wa + '">' + T[lang].chamar + '</a>';
-  html += '<button class="btn share" onclick="compartilhar()">' + T[lang].compartilhar + '</button>';
-  document.getElementById('conteudo').innerHTML = html;
+function copiar(url){
+  if(navigator.clipboard){ navigator.clipboard.writeText(url).then(function(){ alert(T[lang].copiado); }); }
+  else { window.open('https://wa.me/?text=' + encodeURIComponent(url), '_blank'); }
 }
-
-async function compartilhar(){
-  const texto = (dados? dados.nome : 'Ofertas') + ' - ' + T[lang].compartilhar;
-  const url = location.href;
-  if(navigator.share){
-    try{ await navigator.share({title: texto, text: texto, url: url}); }catch(e){}
-  } else {
-    window.open('https://wa.me/?text=' + encodeURIComponent(texto + ' ' + url), '_blank');
-  }
+function vistaTiendas(){
+  var cl = getCfg().clientes || [];
+  var box = document.getElementById('conteudo');
+  if(!cl.length){ box.innerHTML = '<div id="estado">' + T[lang].sinTiendas + '</div>'; return; }
+  var h = '<div class="negocio"><h1>' + T[lang].elige + '</h1></div>';
+  cl.forEach(function(c, i){
+    h += '<a class="tienda" href="' + linkLoja(i) + '"><b>' + esc(c.nome) + '</b><span>' + ((c.anuncios||[]).length) + ' ' + T[lang].ofertas + ' · ' + T[lang].verOfertas + ' →</span></a>';
+  });
+  box.innerHTML = h;
 }
-
-async function init(){
-  const id = new URLSearchParams(location.search).get('id');
-  const box = document.getElementById('conteudo');
-  if(!id){ box.innerHTML = '<div id="estado">' + T[lang].invalido + '</div>'; return; }
-  try{
-    const doc = await db.collection('clientes').doc(id).get();
-    if(!doc.exists){ box.innerHTML = '<div id="estado">' + T[lang].invalido + '</div>'; return; }
-    const c = doc.data();
-    const vigente = c.ativo!== false && c.expiraEm && c.expiraEm.toDate().getTime() > Date.now();
-    if(!vigente){ box.innerHTML = '<div id="estado">' + T[lang].finalizada + '</div>'; return; }
-    dados = c;
-    render(c);
-  }catch(e){
-    box.innerHTML = '<div id="estado">' + T[lang].erro + '</div>';
-  }
+function vistaGaleria(i){
+  var cl = (getCfg().clientes || [])[i];
+  var box = document.getElementById('conteudo');
+  if(!cl){ vistaTiendas(); return; }
+  var wa = foneWa(cl.fone);
+  var h = '<div class="negocio"><h1>' + esc(cl.nome) + '</h1><p>' + ((cl.anuncios||[]).length) + ' ' + T[lang].ofertas + '</p></div>';
+  h += '<div class="grid">';
+  (cl.anuncios || []).forEach(function(a, j){
+    h += '<div class="tarjeta"><a href="' + linkAnuncio(i,j) + '"><img src="' + esc(a.img) + '" alt=""></a>'
+      + '<div class="tt">' + esc(a.titulo || '') + '</div>'
+      + '<div class="acc"><a class="ver" href="' + linkAnuncio(i,j) + '">' + T[lang].ver + '</a>'
+      + '<button class="cp" data-url="' + linkAnuncio(i,j) + '">📋 ' + T[lang].compartir + '</button></div></div>';
+  });
+  h += '</div>';
+  if(wa) h += '<div class="caja"><a class="btn wa" target="_blank" href="https://wa.me/' + wa + '">' + T[lang].llamar + '</a></div>';
+  box.innerHTML = h;
+  box.querySelectorAll('.cp').forEach(function(b){
+    b.addEventListener('click', function(){ copiar(b.getAttribute('data-url')); });
+  });
+}
+function vistaAnuncio(i, j){
+  var cl = (getCfg().clientes || [])[i];
+  var box = document.getElementById('conteudo');
+  var a = cl && (cl.anuncios || [])[j];
+  if(!a){ vistaGaleria(i); return; }
+  var wa = foneWa(cl.fone);
+  var h = '<div class="caja"><div class="anuncio"><img src="' + esc(a.img) + '" alt="">'
+    + '<div class="tt"><b>' + esc(cl.nome) + '</b><br>' + esc(a.titulo || '') + '</div></div>';
+  if(wa) h += '<a class="btn wa" target="_blank" href="https://wa.me/' + wa + '">' + T[lang].llamar + '</a>';
+  h += '<button class="btn share" id="btnShare">📤 ' + T[lang].compartir + '</button>';
+  h += '<a class="btn voltar" href="' + linkLoja(i) + '">' + T[lang].todas + '</a></div>';
+  box.innerHTML = h;
+  document.getElementById('btnShare').addEventListener('click', function(){
+    compartir((a.titulo || cl.nome), linkAnuncio(i, j));
+  });
+}
+function init(){
+  var q = new URLSearchParams(location.search);
+  var li = q.get('loja'), aj = q.get('ad');
+  if(li === null || li === ''){ vistaTiendas(); return; }
+  var i = parseInt(li, 10);
+  if(isNaN(i)){ vistaTiendas(); return; }
+  if(aj === null || aj === ''){ vistaGaleria(i); return; }
+  vistaAnuncio(i, parseInt(aj, 10));
 }
 init();
 </script>
 </body>
-  </html>
+</html>
