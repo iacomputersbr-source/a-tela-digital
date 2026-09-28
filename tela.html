@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Tela Digital</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;background:#000;overflow:hidden;font-family:Arial,Helvetica,sans-serif}
+#tela{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000}
+#tela img{position:absolute;max-width:100%;max-height:100%;object-fit:contain;opacity:0;transition:opacity 1s ease}
+#tela img.visivel{opacity:1}
+#vazio{color:#777;text-align:center;font-size:clamp(18px,4vw,42px);line-height:1.6;padding:20px}
+/* Widgets superiores */
+#topo{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;padding:18px 22px;z-index:10;pointer-events:none}
+.badge{background:rgba(0,0,0,.55);backdrop-filter:blur(6px);border-radius:14px;padding:12px 20px;color:#fff;box-shadow:0 2px 12px rgba(0,0,0,.4)}
+#saudacao{font-size:clamp(18px,3.2vw,32px);font-weight:bold}
+#data{font-size:clamp(12px,2vw,18px);color:#ddd;margin-top:4px}
+#dir{text-align:right}
+#relogio{font-size:clamp(26px,5vw,54px);font-weight:bold;letter-spacing:2px;line-height:1}
+#clima{font-size:clamp(13px,2.2vw,20px);color:#ddd;margin-top:6px}
+/* Faixa inferior */
+#faixa{position:fixed;bottom:0;left:0;right:0;z-index:10;pointer-events:none}
+#prog{height:6px;background:rgba(255,255,255,.15)}
+#barra{height:100%;width:0%;background:#f97316}
+#faixaTxt{background:rgba(0,0,0,.65);backdrop-filter:blur(6px);color:#fff;text-align:center;padding:12px 10px;font-size:clamp(14px,2.4vw,22px)}
+#faixaTxt b{color:#f97316;letter-spacing:1px}
+</style>
+</head>
+<body>
+<div id="tela">
+  <div id="vazio">Nenhuma imagem ativa.<br>Adicione pelo painel.</div>
+</div>
+
+<div id="topo">
+  <div class="badge">
+    <div id="saudacao">Olá! 👋</div>
+    <div id="data"></div>
+  </div>
+  <div class="badge" id="dir">
+    <div id="relogio">--:--</div>
+    <div id="clima">⛅ --°C Curitiba</div>
+  </div>
+</div>
+
+<div id="faixa">
+  <div id="prog"><div id="barra"></div></div>
+  <div id="faixaTxt">📞 Contrate este serviço: <b>(41) 99729-4355</b></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBxz-Y-QtDuZEwFDv9dyQGziQDqvzf_uaE",
+  authDomain: "a-tela-digital.firebaseapp.com",
+  projectId: "a-tela-digital",
+  storageBucket: "a-tela-digital.firebasestorage.app",
+  messagingSenderId: "419054924443",
+  appId: "1:419054924443:web:510a842f13a3ec9d174c3e",
+  measurementId: "G-W5YVP430ES"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const tela = document.getElementById('tela');
+const barra = document.getElementById('barra');
+let imagens = [];
+let indice = 0;
+let atual = null;
+let intervaloMs = 8000;
+let timerRotacao = null;
+
+/* ---------- Widgets ---------- */
+function relogio(){
+  const a = new Date();
+  const hh = String(a.getHours()).padStart(2,'0');
+  const mm = String(a.getMinutes()).padStart(2,'0');
+  document.getElementById('relogio').textContent = hh + ':' + mm;
+  const h = a.getHours();
+  const s = (h >= 5 && h < 12) ? 'Bom dia! ☀️' : (h >= 12 && h < 18) ? 'Boa tarde! 🌤️' : 'Boa noite! 🌙';
+  document.getElementById('saudacao').textContent = s;
+  document.getElementById('data').textContent =
+    a.toLocaleDateString('pt-BR', {day:'numeric', month:'long', year:'numeric'});
+}
+relogio();
+setInterval(relogio, 1000);
+
+function emojiClima(c){
+  if(c === 0) return '☀️';
+  if(c <= 3) return '⛅';
+  if(c <= 48) return '🌫️';
+  if(c <= 67) return '🌧️';
+  if(c <= 77) return '❄️';
+  if(c <= 82) return '🌧️';
+  return '⛈️';
+}
+async function clima(){
+  try{
+    const r = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-25.43&longitude=-49.27&current=temperature_2m,weather_code');
+    const j = await r.json();
+    const t = Math.round(j.current.temperature_2m);
+    document.getElementById('clima').textContent = emojiClima(j.current.weather_code) + ' ' + t + '°C Curitiba';
+  }catch(e){}
+}
+clima();
+setInterval(clima, 1800000); /* atualiza a cada 30 min */
+
+/* ---------- Carrossel ---------- */
+function reiniciarBarra(){
+  barra.style.transition = 'none';
+  barra.style.width = '0%';
+  void barra.offsetWidth;
+  barra.style.transition = 'width ' + intervaloMs + 'ms linear';
+  barra.style.width = '100%';
+}
+
+function mostrar(){
+  if(!imagens.length) return;
+  const el = document.createElement('img');
+  el.src = imagens[indice];
+  el.onload = () => el.classList.add('visivel');
+  el.onerror = () => el.remove();
+  tela.appendChild(el);
+  if(atual){ const velho = atual; setTimeout(()=>velho.remove(), 1100); }
+  atual = el;
+  indice = (indice + 1) % imagens.length;
+  reiniciarBarra();
+}
+
+function iniciarRotacao(){
+  if(timerRotacao) clearInterval(timerRotacao);
+  mostrar();
+  timerRotacao = setInterval(mostrar, intervaloMs);
+}
+
+async function carregar(){
+  try{
+    const cfgDoc = await db.collection('config').doc('geral').get();
+    if(cfgDoc.exists && cfgDoc.data().intervalo){
+      intervaloMs = cfgDoc.data().intervalo * 1000;
+    }
+    const agora = new Date();
+    const snap = await db.collection('clientes')
+      .where('expiraEm','>',agora)
+      .orderBy('expiraEm','asc')
+      .get();
+    /* só exibe anúncios pagos (ativo !== false) e não vencidos -> corte automático */
+    imagens = snap.docs
+      .map(d => d.data())
+      .filter(c => c.ativo !== false)
+      .map(c => c.imagemData || c.imagemURL)
+      .filter(Boolean);
+    const vazio = document.getElementById('vazio');
+    if(imagens.length){
+      if(vazio) vazio.remove();
+      indice = 0;
+      if(atual){ atual.remove(); atual = null; }
+      iniciarRotacao();
+    } else {
+      if(timerRotacao) clearInterval(timerRotacao);
+      if(!vazio){
+        tela.innerHTML = '<div id="vazio">Nenhuma imagem ativa.<br>Adicione pelo painel.</div>';
+      }
+    }
+  }catch(e){ console.error('Erro ao carregar:', e); }
+}
+
+carregar();
+setInterval(carregar, 60000);
+</script>
+</body>
+</html>
