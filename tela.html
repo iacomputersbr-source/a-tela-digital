@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Tela Digital</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;background:#000;overflow:hidden;font-family:Arial,Helvetica,sans-serif;color:#fff}
+#barraTopo{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;
+  padding:14px 28px;background:rgba(0,0,0,.55);z-index:20;font-size:clamp(14px,2.2vw,26px)}
+#saudacao{color:#f97316;font-weight:bold}
+#data{color:#ccc;font-size:.8em;margin-top:4px}
+#ladoDir{text-align:right}
+#relogio{font-weight:bold;font-size:1.3em;letter-spacing:2px}
+#clima{color:#7dd3fc;font-size:.85em;margin-top:4px}
+#tela{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000}
+#tela img{position:absolute;max-width:100%;max-height:100%;object-fit:contain;opacity:0;transition:opacity 1s ease}
+#tela img.visivel{opacity:1}
+#vazio{color:#777;text-align:center;font-size:clamp(18px,4vw,42px);line-height:1.6;padding:20px}
+#barraBase{position:fixed;bottom:0;left:0;right:0;z-index:20;background:rgba(0,0,0,.55)}
+#progressoWrap{height:8px;background:#333}
+#progresso{height:100%;width:0;background:#f97316}
+#rodape{display:flex;justify-content:space-between;align-items:center;padding:12px 28px;font-size:clamp(13px,2vw,24px)}
+#rodape.tel{color:#4ade80;font-weight:bold}
+#rodape.marca{color:rgba(255,255,255,.4);letter-spacing:3px;font-size:.75em}
+@media (max-width:700px),(orientation:portrait){
+  #barraTopo{flex-direction:column;gap:6px;text-align:center;padding:10px 12px}
+  #ladoDir{text-align:center}
+  #tela img{max-width:100vw;max-height:62vh}
+  #rodape{flex-direction:column;gap:6px;text-align:center;padding:10px}
+}
+</style>
+</head>
+<body>
+<div id="barraTopo">
+  <div><div id="saudacao">--</div><div id="data">--</div></div>
+  <div id="ladoDir"><div id="relogio">--:--</div><div id="clima">...</div></div>
+</div>
+<div id="tela"><div id="vazio">Nenhuma imagem ativa.<br>Adicione pelo painel.</div></div>
+<div id="barraBase">
+  <div id="progressoWrap"><div id="progresso"></div></div>
+  <div id="rodape"><span class="tel">(41) 99729-4355</span><span class="marca">A TELA DIGITAL</span></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+(function iniciarWidgets(){
+  var T = {
+    pt:{bomDia:'Bom dia', boaTarde:'Boa tarde', boaNoite:'Boa noite'},
+    es:{bomDia:'Buenos días', boaTarde:'Buenas tardes', boaNoite:'Buenas noches'}
+  };
+  var lang = 'pt';
+  function el(id){ return document.getElementById(id); }
+  function atualizarReloj(){
+    try{
+      var a = new Date();
+      el('relogio').textContent = String(a.getHours()).padStart(2,'0') + ':' + String(a.getMinutes()).padStart(2,'0');
+    }catch(e){}
+  }
+  function atualizarSaudacao(){
+    try{
+      var a = new Date(), h = a.getHours();
+      var s = h < 12? T[lang].bomDia : (h < 18? T[lang].boaTarde : T[lang].boaNoite);
+      el('saudacao').textContent = s + '!';
+      el('data').textContent = a.toLocaleDateString(lang==='pt'?'pt-BR':'es-ES',{weekday:'long',day:'2-digit',month:'long'});
+    }catch(e){}
+  }
+  async function atualizarClima(){
+    try{
+      var r = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-25.43&longitude=-49.27&current=temperature_2m,weathercode&timezone=America%2FSao_Paulo');
+      var d = await r.json();
+      var ic = {0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌦️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',80:'🌧️',81:'🌧️',82:'🌧️',95:'⛈️',96:'⛈️',99:'⛈️'}[d.current.weathercode] || '🌡️';
+      el('clima').textContent = ic + ' ' + Math.round(d.current.temperature_2m) + '°C Curitiba';
+    }catch(e){ el('clima').textContent = 'Curitiba'; }
+  }
+  atualizarReloj(); atualizarSaudacao(); atualizarClima();
+  setInterval(atualizarReloj, 1000);
+  setInterval(atualizarSaudacao, 60000);
+  setInterval(atualizarClima, 600000);
+})();
+
+(function anuncios(){
+  var tela = document.getElementById('tela');
+  var vazio = document.getElementById('vazio');
+  var intervalo = 8000, imgs = [], i = 0, atual = null;
+  function reiniciarBarra(){
+    var p = document.getElementById('progresso');
+    p.style.transition = 'none'; p.style.width = '0';
+    void p.offsetWidth;
+    p.style.transition = 'width ' + (intervalo/1000) + 's linear'; p.style.width = '100%';
+  }
+  function mostrar(){
+    if(!imgs.length) return;
+    var nva = document.createElement('img');
+    nva.onload = function(){ nva.classList.add('visivel'); };
+    nva.onerror = function(){ nva.remove(); };
+    nva.src = imgs[i];
+    tela.appendChild(nva);
+    if(atual){ (function(velha){ setTimeout(function(){ velha.remove(); }, 1100); })(atual); }
+    atual = nva; i = (i+1) % imgs.length;
+    reiniciarBarra();
+  }
+  try{
+    firebase.initializeApp({
+      apiKey: "AIzaSyBxz-Y-QtDuZEwFDv9dyQGziQDqvzf_uaE",
+      authDomain: "a-tela-digital.firebaseapp.com",
+      projectId: "a-tela-digital",
+      storageBucket: "a-tela-digital.firebasestorage.app",
+      messagingSenderId: "419054924443",
+      appId: "1:419054924443:web:510a842f13a3ec9d174c3e",
+      measurementId: "G-W5YVP430ES"
+    });
+    var db = firebase.firestore();
+    db.collection('config').doc('tela').get().then(function(d){
+      if(d.exists && d.data().segundosPorImagem) intervalo = d.data().segundosPorImagem * 1000;
+      return db.collection('clientes').where('expiraEm','>',new Date()).get();
+    }).then(function(snap){
+      snap.forEach(function(doc){
+        var c = doc.data();
+        if(c.ativo!== false){
+          var s = c.imagemData || c.imagemURL || '';
+          if(s && s.trim()) imgs.push(s);
+        }
+      });
+      if(imgs.length){
+        if(vazio) vazio.remove();
+        imgs.forEach(function(s){ var p = new Image(); p.src = s; });
+        mostrar();
+        setInterval(mostrar, intervalo);
+      }
+    }).catch(function(){});
+    setInterval(function(){
+      db.collection('clientes').where('expiraEm','>',new Date()).get().then(function(snap){
+        var n = [];
+        snap.forEach(function(doc){
+          var c = doc.data();
+          if(c.ativo!== false){
+            var s = c.imagemData || c.imagemURL || '';
+            if(s && s.trim()) n.push(s);
+          }
+        });
+        if(n.join('|')!== imgs.join('|')) location.reload();
+      }).catch(function(){});
+    }, 60000);
+  }catch(e){}
+})();
+</script>
+</body>
+  </html>
