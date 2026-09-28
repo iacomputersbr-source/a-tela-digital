@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ofertas — Tela Digital</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; background: #0d1117; color: #fff; }
+  .wrap { max-width: 800px; margin: 0 auto; padding: 16px; }
+  header { text-align: center; padding: 18px 10px; }
+  header h1 { font-size: 22px; }
+  header h1 span { color: #ff6a00; }
+  header p { color: #8b949e; font-size: 14px; margin-top: 4px; }
+  .car { position: relative; border-radius: 16px; overflow: hidden; margin: 8px 0 18px; background: #161b22; }
+  .slides { display: flex; transition: transform .5s ease; }
+  .slide { min-width: 100%; position: relative; }
+  .slide img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
+  .slide .leg { position: absolute; left: 0; right: 0; bottom: 0; padding: 30px 16px 14px;
+    background: linear-gradient(transparent, rgba(0,0,0,.85)); }
+  .slide .leg b { font-size: 18px; display: block; }
+  .seta { position: absolute; top: 42%; background: rgba(0,0,0,.5); color: #fff; border: none;
+    font-size: 22px; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; }
+  .seta.e { left: 10px; } .seta.d { right: 10px; }
+  .dots { position: absolute; bottom: 62px; left: 0; right: 0; text-align: center; }
+  .dots i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.4); margin: 0 4px; }
+  .dots i.on { background: #ff6a00; }
+  .wa { display: block; text-align: center; background: #25d366; color: #fff; text-decoration: none;
+    font-weight: 800; font-size: 16px; border-radius: 12px; padding: 14px; margin: 6px 0 18px; }
+  .todas { display: block; text-align: center; color: #ff6a00; font-size: 14px; margin-bottom: 20px; }
+  footer { text-align: center; color: #8b949e; font-size: 12px; padding: 14px; }
+  .vazio { text-align: center; color: #8b949e; padding: 60px 20px; font-size: 15px; }
+  @media (min-width: 760px) { header h1 { font-size: 28px; } .slide .leg b { font-size: 22px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>📺 Tela<span>Digital</span></h1>
+    <p id="loja">Carregando ofertas...</p>
+  </header>
+
+  <div id="conteudo"></div>
+
+  <footer>Tela Digital Curitiba · (41) 99729-4355</footer>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBxz-Y-QtDuZEwFDv9dyQGziQDqvzf_uaE",
+  authDomain: "a-tela-digital.firebaseapp.com",
+  projectId: "a-tela-digital",
+  storageBucket: "a-tela-digital.firebasestorage.app",
+  messagingSenderId: "419054924443",
+  appId: "1:419054924443:web:510a842f13a3ec9d174c3e"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const cid = new URLSearchParams(location.search).get('c');
+const box = document.getElementById('conteudo');
+let idx = 0, timer = null;
+
+if (!cid) {
+  box.innerHTML = '<div class="vazio">Link inválido.<br><a class="todas" href="tela.html">Ver todas as ofertas →</a></div>';
+} else {
+  Promise.all([
+    db.collection('clientes').doc(cid).get(),
+    db.collection('anuncios').where('clienteId', '==', cid).get()
+  ]).then(([cDoc, aSnap]) => {
+    const agora = Date.now();
+    const ads = aSnap.docs.map(d => d.data()).filter(a => a.vence && a.vence.toMillis() > agora);
+    const nome = cDoc.exists ? cDoc.data().nombre : 'Ofertas';
+    const tel = cDoc.exists ? cDoc.data().telefono : '';
+    document.getElementById('loja').textContent = '🏪 ' + nome;
+    if (!ads.length) {
+      box.innerHTML = '<div class="vazio">😕 Nenhuma oferta ativa no momento.<br><a class="todas" href="tela.html">Ver todas as ofertas →</a></div>';
+      return;
+    }
+    box.innerHTML =
+      '<div class="car"><div class="slides" id="slides">' +
+      ads.map(a => '<div class="slide"><img src="' + a.imagen + '"><div class="leg"><b>' + esc(a.titulo) + '</b></div></div>').join('') +
+      '</div><button class="seta e" onclick="muda(-1)">‹</button><button class="seta d" onclick="muda(1)">›</button>' +
+      '<div class="dots" id="dots">' + ads.map((_, i) => '<i class="' + (i === 0 ? 'on' : '') + '"></i>').join('') + '</div></div>' +
+      (tel ? '<a class="wa" target="_blank" href="https://wa.me/55' + tel + '?text=' + encodeURIComponent('Olá! Vi suas ofertas na Tela Digital') + '">💬 Falar com ' + esc(nome) + '</a>' : '') +
+      '<a class="todas" href="tela.html">Ver todas as ofertas da Tela Digital →</a>';
+    clearInterval(timer);
+    if (ads.length > 1) timer = setInterval(() => muda(1), 8000);
+  }).catch(() => {
+    box.innerHTML = '<div class="vazio">Erro ao carregar. Verifique sua conexão.</div>';
+  });
+}
+function muda(d) {
+  const n = document.querySelectorAll('.slide').length; if (!n) return;
+  idx = (idx + d + n) % n;
+  document.getElementById('slides').style.transform = 'translateX(-' + idx * 100 + '%)';
+  document.querySelectorAll('.dots i').forEach((el, i) => el.classList.toggle('on', i === idx));
+  clearInterval(timer); timer = setInterval(() => muda(1), 8000);
+}
+function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>

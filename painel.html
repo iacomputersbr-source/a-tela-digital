@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Admin — Tela Digital</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; background: #f1f3f6; color: #1c1e21; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 16px; }
+  /* Login */
+  #login { min-height: 90vh; display: flex; align-items: center; justify-content: center; }
+  .login-card { background: #fff; padding: 32px 24px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,.1); width: 100%; max-width: 360px; text-align: center; }
+  .login-card h1 { font-size: 22px; margin-bottom: 6px; }
+  .login-card p { color: #65676b; font-size: 14px; margin-bottom: 18px; }
+  /* General */
+  header.top { background: #111; color: #fff; padding: 16px; border-radius: 14px; margin-bottom: 16px; }
+  header.top h1 { font-size: 20px; }
+  header.top p { font-size: 13px; color: #bbb; margin-top: 4px; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0; }
+  .stat { background: #fff; border-radius: 12px; padding: 14px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .stat b { font-size: 24px; display: block; }
+  .stat span { font-size: 12px; color: #65676b; }
+  .card { background: #fff; border-radius: 14px; padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .card h2 { font-size: 17px; margin-bottom: 14px; }
+  label { font-size: 13px; font-weight: 600; display: block; margin: 12px 0 5px; }
+  input, select, textarea { width: 100%; padding: 11px 12px; border: 1px solid #ccd0d5; border-radius: 10px; font-size: 15px; }
+  input:focus, select:focus { outline: none; border-color: #ff6a00; }
+  .planes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 6px; }
+  .plan { border: 2px solid #ccd0d5; border-radius: 12px; padding: 12px 6px; text-align: center; cursor: pointer; transition: .15s; }
+  .plan.sel { border-color: #ff6a00; background: #fff4ec; }
+  .plan b { display: block; font-size: 15px; }
+  .plan span { font-size: 14px; color: #ff6a00; font-weight: 700; }
+  .plan small { display: block; font-size: 11px; color: #65676b; margin-top: 2px; }
+  #preview { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 10px; margin-top: 8px; display: none; background: #e4e6eb; }
+  .hint { font-size: 12px; color: #65676b; margin-top: 4px; }
+  .btn { display: inline-block; border: none; border-radius: 10px; padding: 12px 18px; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .btn-pri { background: #ff6a00; color: #fff; width: 100%; margin-top: 16px; }
+  .btn-pri:disabled { background: #b9bec5; }
+  .btn-sec { background: #e4e6eb; color: #1c1e21; font-size: 13px; padding: 8px 12px; margin: 4px 4px 0 0; }
+  .btn-wa { background: #25d366; color: #fff; font-size: 13px; padding: 8px 12px; margin: 4px 4px 0 0; }
+  .btn-del { background: #ffe0e0; color: #c00; font-size: 13px; padding: 8px 12px; margin: 4px 4px 0 0; }
+  .cliente { border: 1px solid #e4e6eb; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+  .cliente h3 { font-size: 16px; }
+  .cliente .datos { font-size: 13px; color: #65676b; margin: 4px 0 8px; }
+  .anuncio { display: flex; gap: 10px; align-items: center; background: #f7f8fa; border-radius: 10px; padding: 10px; margin-top: 8px; }
+  .anuncio img { width: 96px; aspect-ratio: 16/9; object-fit: cover; border-radius: 8px; }
+  .anuncio .info { flex: 1; font-size: 13px; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+  .ok { background: #d4f5dd; color: #0a7a2e; }
+  .warn { background: #fff0c2; color: #9a6b00; }
+  .off { background: #ffd9d9; color: #b00000; }
+  #msg { text-align: center; font-size: 14px; margin-top: 10px; min-height: 20px; }
+  .linkbox { display: flex; gap: 8px; margin-top: 10px; }
+  .linkbox input { flex: 1; font-size: 13px; background: #f0f2f5; }
+  @media (max-width: 560px) { .stats { grid-template-columns: repeat(3, 1fr); } .planes { grid-template-columns: repeat(3, 1fr); } }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="login-card">
+    <h1>📺 Tela Digital</h1>
+    <p>Panel de administración</p>
+    <input type="password" id="clave" placeholder="Contraseña" style="margin-bottom:10px">
+    <button class="btn btn-pri" style="margin-top:0" onclick="entrar()">Entrar</button>
+    <p id="loginMsg" style="color:#c00;margin-top:10px"></p>
+  </div>
+</div>
+
+<!-- PANEL -->
+<div id="panel" style="display:none">
+  <div class="wrap">
+    <header class="top">
+      <h1>📺 Tela Digital — Admin</h1>
+      <p>Gestiona clientes, anuncios y links</p>
+      <div class="linkbox">
+        <input id="linkGeneral" readonly value="">
+        <button class="btn btn-sec" onclick="copiar('linkGeneral')">📋 Link tela</button>
+      </div>
+    </header>
+
+    <div class="stats">
+      <div class="stat"><b id="stActivos">0</b><span>Anuncios activos</span></div>
+      <div class="stat"><b id="stVencidos">0</b><span>Vencidos</span></div>
+      <div class="stat"><b id="stClientes">0</b><span>Clientes</span></div>
+    </div>
+
+    <div class="card">
+      <h2>➕ Nuevo anuncio</h2>
+      <label>Nombre de la persona o empresa *</label>
+      <input id="fNombre" placeholder="Ej: Pizzaria do Zé">
+      <label>CPF o CNPJ</label>
+      <input id="fDoc" placeholder="000.000.000-00">
+      <label>Teléfono (WhatsApp) *</label>
+      <input id="fTel" type="tel" placeholder="41999999999">
+      <label>Correo electrónico</label>
+      <input id="fEmail" type="email" placeholder="cliente@email.com">
+      <label>Título del anuncio *</label>
+      <input id="fTitulo" placeholder="Ej: Pizza grande 2 sabores R$ 49,90">
+      <label>Categoría *</label>
+      <select id="fCat">
+        <option>Alimentação</option><option>Beleza</option><option>Saúde</option>
+        <option>Serviços</option><option>Moda</option><option>Tecnologia</option>
+        <option>Casa</option><option>Educação</option><option>Outros</option>
+      </select>
+      <label>Plan *</label>
+      <div class="planes">
+        <div class="plan" data-dias="1" onclick="selPlan(this)"><b>1 día</b><span>R$ 15</span><small>24 horas</small></div>
+        <div class="plan sel" data-dias="7" onclick="selPlan(this)"><b>7 días</b><span>R$ 90</span><small>1 semana</small></div>
+        <div class="plan" data-dias="30" onclick="selPlan(this)"><b>30 días</b><span>R$ 300</span><small>1 mes</small></div>
+      </div>
+      <label>Fecha de inicio</label>
+      <input id="fInicio" type="date">
+      <p class="hint" id="venceInfo"></p>
+      <label>Imagen del anuncio (horizontal 16:9) *</label>
+      <input id="fImg" type="file" accept="image/*" onchange="verPreview(this)">
+      <p class="hint">Usa una imagen horizontal (16:9). Ocupará toda la pantalla de la tela.</p>
+      <img id="preview">
+      <button class="btn btn-pri" id="btnGuardar" onclick="guardar()">Publicar anuncio</button>
+      <p id="msg"></p>
+    </div>
+
+    <div class="card">
+      <h2>👥 Clientes y anuncios</h2>
+      <div id="lista"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script>
+// ⚠️ CAMBIA ESTA CONTRASEÑA POR LA TUYA
+const CLAVE_PANEL = "admin123";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBxz-Y-QtDuZEwFDv9dyQGziQDqvzf_uaE",
+  authDomain: "a-tela-digital.firebaseapp.com",
+  projectId: "a-tela-digital",
+  storageBucket: "a-tela-digital.firebasestorage.app",
+  messagingSenderId: "419054924443",
+  appId: "1:419054924443:web:510a842f13a3ec9d174c3e"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const storage = firebase.storage();
+
+const PRECIOS = { 1: 15, 7: 90, 30: 300 };
+let planDias = 7;
+const BASE = location.href.replace(/painel\.html.*$/, '');
+
+document.getElementById('linkGeneral').value = BASE + 'tela.html';
+document.getElementById('fInicio').valueAsDate = new Date();
+actualizaVence();
+
+function entrar() {
+  if (document.getElementById('clave').value === CLAVE_PANEL) {
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('panel').style.display = 'block';
+    cargar();
+  } else document.getElementById('loginMsg').textContent = 'Contraseña incorrecta';
+}
+document.getElementById('clave').addEventListener('keydown', e => { if (e.key === 'Enter') entrar(); });
+
+function selPlan(el) {
+  document.querySelectorAll('.plan').forEach(p => p.classList.remove('sel'));
+  el.classList.add('sel');
+  planDias = parseInt(el.dataset.dias);
+  actualizaVence();
+}
+function actualizaVence() {
+  const ini = document.getElementById('fInicio').valueAsDate || new Date();
+  const v = new Date(ini); v.setDate(v.getDate() + planDias);
+  document.getElementById('venceInfo').textContent =
+    '⏱️ Se publica el ' + ini.toLocaleDateString('es') + ' y vence el ' + v.toLocaleDateString('es') +
+    ' — R$ ' + PRECIOS[planDias];
+}
+document.getElementById('fInicio').addEventListener('change', actualizaVence);
+
+function verPreview(input) {
+  const f = input.files[0]; if (!f) return;
+  const img = document.getElementById('preview');
+  img.src = URL.createObjectURL(f); img.style.display = 'block';
+}
+function copiar(id) {
+  const el = document.getElementById(id);
+  el.select(); document.execCommand('copy');
+  alert('Link copiado ✅');
+}
+function soloDigitos(s) { return (s || '').replace(/\D/g, ''); }
+
+async function guardar() {
+  const nombre = document.getElementById('fNombre').value.trim();
+  const tel = soloDigitos(document.getElementById('fTel').value);
+  const titulo = document.getElementById('fTitulo').value.trim();
+  const imgFile = document.getElementById('fImg').files[0];
+  const msg = document.getElementById('msg');
+  if (!nombre || !tel || !titulo || !imgFile) { msg.style.color = '#c00'; msg.textContent = 'Completa los campos con * y sube la imagen'; return; }
+  const btn = document.getElementById('btnGuardar');
+  btn.disabled = true; msg.style.color = '#65676b'; msg.textContent = 'Subiendo imagen...';
+  try {
+    const ref = storage.ref('anuncios/' + Date.now() + '_' + imgFile.name.replace(/\s/g, '_'));
+    await ref.put(imgFile);
+    const url = await ref.getDownloadURL();
+    const ini = document.getElementById('fInicio').valueAsDate || new Date();
+    ini.setHours(0, 0, 0, 0);
+    const vence = new Date(ini); vence.setDate(vence.getDate() + planDias);
+    const clienteId = tel;
+    await db.collection('clientes').doc(clienteId).set({
+      nombre: nombre,
+      doc: document.getElementById('fDoc').value.trim(),
+      telefono: tel,
+      email: document.getElementById('fEmail').value.trim(),
+      actualizado: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    await db.collection('anuncios').add({
+      clienteId: clienteId, nombre: nombre, titulo: titulo,
+      categoria: document.getElementById('fCat').value,
+      imagen: url, storagePath: ref.fullPath, telefono: tel,
+      planDias: planDias, precio: PRECIOS[planDias],
+      inicio: firebase.firestore.Timestamp.fromDate(ini),
+      vence: firebase.firestore.Timestamp.fromDate(vence),
+      creado: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    msg.style.color = '#0a7a2e'; msg.textContent = '✅ Anuncio publicado';
+    ['fNombre','fDoc','fTel','fEmail','fTitulo'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('fImg').value = '';
+    document.getElementById('preview').style.display = 'none';
+    cargar();
+  } catch (e) { msg.style.color = '#c00'; msg.textContent = 'Error: ' + e.message; }
+  btn.disabled = false;
+}
+
+async function cargar() {
+  const lista = document.getElementById('lista');
+  lista.innerHTML = 'Cargando...';
+  const [cs, as] = await Promise.all([db.collection('clientes').get(), db.collection('anuncios').orderBy('creado', 'desc').get()]);
+  const anuncios = as.docs.map(d => ({ id: d.id, ...d.data() }));
+  const ahora = Date.now();
+  let act = 0, ven = 0;
+  anuncios.forEach(a => { (a.vence.toMillis() > ahora ? act++ : ven++); });
+  document.getElementById('stActivos').textContent = act;
+  document.getElementById('stVencidos').textContent = ven;
+  document.getElementById('stClientes').textContent = cs.size;
+  if (!cs.size) { lista.innerHTML = '<p style="color:#65676b">Aún no hay clientes.</p>'; return; }
+  let html = '';
+  cs.docs.forEach(c => {
+    const cl = c.data();
+    const mis = anuncios.filter(a => a.clienteId === c.id);
+    const linkCli = BASE + 'oferta.html?c=' + c.id;
+    html += '<div class="cliente"><h3>🏪 ' + esc(cl.nombre) + '</h3>' +
+      '<div class="datos">📄 ' + esc(cl.doc || '—') + ' &nbsp; 📞 ' + esc(cl.telefono) + ' &nbsp; ✉️ ' + esc(cl.email || '—') + '</div>' +
+      '<div class="linkbox"><input id="lk_' + c.id + '" readonly value="' + linkCli + '">' +
+      '<button class="btn btn-sec" onclick="copiar(\'lk_' + c.id + '\')">📋</button></div>' +
+      '<button class="btn-wa btn" onclick="waCliente(\'' + cl.telefono + '\',\'' + esc(cl.nombre).replace(/'/g, '') + '\',\'' + linkCli + '\')">💬 Enviar link por WhatsApp</button>';
+    mis.forEach(a => {
+      const v = a.vence.toMillis();
+      const dias = Math.ceil((v - ahora) / 86400000);
+      const badge = v > ahora
+        ? (dias <= 2 ? '<span class="badge warn">⏳ vence en ' + dias + ' día(s)</span>' : '<span class="badge ok">✅ activo · ' + dias + ' días</span>')
+        : '<span class="badge off">⛔ vencido</span>';
+      html += '<div class="anuncio"><img src="' + a.imagen + '"><div class="info"><b>' + esc(a.titulo) + '</b><br>' +
+        a.categoria + ' · ' + a.planDias + ' días · R$ ' + a.precio + '<br>' + badge + '</div>' +
+        '<button class="btn-del btn" onclick="eliminar(\'' + a.id + '\',\'' + (a.storagePath || '') + '\')">🗑️</button></div>';
+    });
+    html += '</div>';
+  });
+  lista.innerHTML = html;
+}
+function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function waCliente(tel, nombre, link) {
+  const txt = encodeURIComponent('Hola ' + nombre + ' 👋 Aquí está tu link personal de la Tela Digital, compártelo con tus clientes: ' + link);
+  window.open('https://wa.me/55' + tel + '?text=' + txt, '_blank');
+}
+async function eliminar(id, path) {
+  if (!confirm('¿Eliminar este anuncio?')) return;
+  await db.collection('anuncios').doc(id).delete();
+  if (path) { try { await storage.ref(path).delete(); } catch (e) {} }
+  cargar();
+}
+</script>
+</body>
+</html>
