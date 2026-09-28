@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel - A Tela Digital</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Arial,sans-serif}
+body{background:#f5f5f5;color:#222}
+header{background:#111;color:#fff;padding:14px 16px;position:sticky;top:0;z-index:50}
+.topbar{display:flex;align-items:center;gap:10px;max-width:800px;margin:0 auto}
+.logo{font-size:20px;font-weight:800;color:#ff7a00}
+.wrap{max-width:800px;margin:0 auto;padding:16px}
+.card{background:#fff;border-radius:12px;padding:18px;margin-bottom:14px;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+h3{margin-bottom:10px;font-size:17px}
+label{display:block;font-size:14px;font-weight:600;margin:10px 0 4px}
+input[type=file],input[type=number]{width:100%;padding:11px;border:1px solid #ccc;border-radius:10px;font-size:15px}
+.btn{background:#ff7a00;color:#fff;border:none;padding:12px 20px;border-radius:24px;font-weight:700;cursor:pointer;font-size:15px;width:100%;margin-top:12px}
+.btn:active{transform:scale(.97)}
+.btn-red{background:#e53935}
+.btn-dark{background:#111}
+.btn-small{padding:7px 12px;font-size:13px;width:auto;margin-top:0}
+.preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.preview img{width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #ddd}
+.item{display:flex;align-items:center;gap:10px;background:#fff;border-radius:10px;padding:10px;margin-bottom:10px;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.item img{width:70px;height:70px;object-fit:cover;border-radius:8px}
+.item .n{flex:1;font-size:14px}
+.item .n small{color:#888;display:block}
+.switch{display:flex;align-items:center;gap:8px;font-size:14px;margin-top:6px}
+.row{display:flex;gap:8px;margin-top:8px}
+.msg{text-align:center;color:#888;padding:20px}
+#login{max-width:400px;margin:60px auto;padding:20px}
+.off{opacity:.45}
+</style>
+</head>
+<body>
+
+<div id="login" class="card">
+  <h3>🔐 Painel da Tela Digital</h3>
+  <label>Senha</label>
+  <input type="password" id="pass" placeholder="Digite a senha" style="width:100%;padding:11px;border:1px solid #ccc;border-radius:10px">
+  <button class="btn" onclick="entrar()">Entrar</button>
+</div>
+
+<div id="app" style="display:none">
+<header><div class="topbar"><div class="logo">⚙️ Painel Tela Digital</div></div></header>
+<div class="wrap">
+
+  <div class="card">
+    <h3>⏱️ Tempo de cada imagem</h3>
+    <label>Segundos (ex: 10)</label>
+    <input type="number" id="duracao" min="3" max="120" value="10">
+    <button class="btn" onclick="salvarDuracao()">Salvar tempo</button>
+  </div>
+
+  <div class="card">
+    <h3>📤 Adicionar imagem</h3>
+    <input type="file" id="fileImg" accept="image/*">
+    <div class="preview" id="prev"></div>
+    <button class="btn" id="btnUp" onclick="enviar()">Enviar para a tela</button>
+  </div>
+
+  <h3 style="margin:6px 0 10px">🖼️ Imagens na tela</h3>
+  <div id="lista"><div class="msg">Carregando...</div></div>
+
+</div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBxz-Y-QtDuZEwFDv9dyQGziQDqvzf_uaE",
+  authDomain: "a-tela-digital.firebaseapp.com",
+  projectId: "a-tela-digital",
+  storageBucket: "a-tela-digital.firebasestorage.app",
+  messagingSenderId: "419054924443",
+  appId: "1:419054924443:web:510a842f13a3ec9d174c3e"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+let b64 = null;
+
+function entrar(){
+  if(document.getElementById('pass').value === '2024'){
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    carregar();
+  } else alert('Senha incorreta.');
+}
+
+document.getElementById('fileImg').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if(!f) return;
+  const rd = new FileReader();
+  rd.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      const max = 1080;
+      let {width:w, height:h} = img;
+      if(w > max){ h = h*max/w; w = max; }
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      b64 = c.toDataURL('image/jpeg', 0.72);
+      document.getElementById('prev').innerHTML = `<img src="${b64}">`;
+    };
+    img.src = ev.target.result;
+  };
+  rd.readAsDataURL(f);
+});
+
+async function enviar(){
+  if(!b64){ alert('Escolha uma imagem primeiro.'); return; }
+  const btn = document.getElementById('btnUp');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  try{
+    await db.collection('midia').add({
+      imagem: b64, ativa: true,
+      data: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    alert('✅ Imagem enviada para a tela!');
+    b64 = null;
+    document.getElementById('prev').innerHTML = '';
+    document.getElementById('fileImg').value = '';
+  }catch(e){ alert('Erro: ' + e.message); }
+  btn.disabled = false; btn.textContent = 'Enviar para a tela';
+}
+
+async function salvarDuracao(){
+  const v = Number(document.getElementById('duracao').value);
+  if(v < 3){ alert('Mínimo 3 segundos.'); return; }
+  await db.collection('config').doc('geral').set({duracao: v});
+  alert('✅ Tempo salvo: ' + v + ' segundos por imagem.');
+}
+
+function carregar(){
+  db.collection('config').doc('geral').get().then(d => {
+    if(d.exists && d.data().duracao) document.getElementById('duracao').value = d.data().duracao;
+  });
+  db.collection('midia').orderBy('data','desc').onSnapshot(s => {
+    const docs = s.docs.map(d => ({id:d.id, ...d.data()}));
+    document.getElementById('lista').innerHTML = docs.length ? docs.map(a => `
+      <div class="item ${a.ativa?'':'off'}">
+        <img src="${a.imagem}">
+        <div class="n">${a.ativa?'🟢 Ativa':'⚪ Pausada'}<small>Aparece na tela em sequência</small></div>
+        <div class="row">
+          <button class="btn btn-small ${a.ativa?'btn-dark':''}" onclick="toggleAtiva('${a.id}',${!a.ativa})">${a.ativa?'Pausar':'Ativar'}</button>
+          <button class="btn btn-small btn-red" onclick="excluir('${a.id}')">Excluir</button>
+        </div>
+      </div>`).join('') : '<div class="msg">Nenhuma imagem ainda.</div>';
+  });
+}
+async function toggleAtiva(id, v){
+  await db.collection('midia').doc(id).update({ativa: v});
+}
+async function excluir(id){
+  if(confirm('Excluir esta imagem da tela?')){
+    await db.collection('midia').doc(id).delete();
+  }
+}
+</script>
+</body>
+</html>
